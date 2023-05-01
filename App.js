@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Button, TextInput } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 
 export default function App() {
   const API_URL = "https://www.mapquestapi.com/geocoding/v1/address?key=5JlmPjFwYeTjG7y3Wr4y9grpq9J9XHbY"
+  const [location, setLocation] = useState(null);
   const [address, setAddress] = useState('');
   const [region, setRegion] = useState({
     latitude: 60.2,
@@ -12,6 +13,23 @@ export default function App() {
     latitudeDelta: 0.0322,
     longitudeDelta: 0.0221,
   });
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('No permission to get location')
+        return;
+      }
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+      setRegion({
+        ...region,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+    })();
+  }, []);
 
   const showAddress = () => {
     if (address) {
